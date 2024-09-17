@@ -15,7 +15,8 @@ import LivestockListScreen from '../screens/LivestockListScreen';
 import LivestockProfileScreen from '../screens/LivestockProfileScreen';
 import AddLivestockScreen from '../screens/AddLivestockScreen';
 import InventoryScreen from '../screens/InventoryScreen';
-
+import TasksScreen from '../screens/TasksScreen';
+import AddTaskScreen from '../screens/AddTaskScreen';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,8 @@ const MainNavigator = () => {
       <MainStack.Screen name='LivestockProfile' component={LivestockProfileScreen} />
       <MainStack.Screen name='AddLivestock' component={AddLivestockScreen} />
       <MainStack.Screen name='Inventory' component={InventoryScreen} />
+      <MainStack.Screen name='Tasks' component={TasksScreen} />
+      <MainStack.Screen name='AddTask' component={AddTaskScreen} />
       {/* <MainStack.Screen name="PersonalInfo" component={PersonalInfoScreen} /> */}
       {/* <MainStack.Screen name="FarmInfo" component={FarmInfoScreen} /> */}
     </MainStack.Navigator>

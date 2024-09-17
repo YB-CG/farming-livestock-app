@@ -64,8 +64,7 @@ export const getWeather = async (lat, lon) => {
   try {
     const response = await axios.get(WEATHER_API_URL, {
       params: {
-        lat,
-        lon,
+        q: 'Accra,gh',
         appid: API_KEY,
         units: 'metric', // For Celsius
       },

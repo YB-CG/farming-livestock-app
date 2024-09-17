@@ -61,14 +61,6 @@ const SettingsScreen = ({ navigation }) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
-          {renderSettingItem("notifications", "Notifications", toggleNotifications, 
-            <Switch
-              value={isNotificationsEnabled}
-              onValueChange={toggleNotifications}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={isNotificationsEnabled ? '#2E7D32' : '#f4f3f4'}
-            />
-          )}
           {renderSettingItem("location-on", "Location Services", toggleLocation, 
             <Switch
               value={isLocationEnabled}

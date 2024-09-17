@@ -72,7 +72,7 @@ const HomeScreen = ({ navigation }) => {
 
   const renderWeatherIcon = () => {
     if (!weather) return null;
-    switch (weather.description.toLowerCase()) {
+    switch (weather.description) {
       case 'sunny':
         return <Icon name="wb-sunny" size={40} color="#FFA000" />;
       case 'cloudy':
@@ -115,6 +115,8 @@ const HomeScreen = ({ navigation }) => {
           <View>
             <Text style={styles.weatherTemp}>{weather?.temp}°C</Text>
             <Text style={styles.weatherDesc}>{weather?.description}</Text>
+
+            
           </View>
           <Text style={styles.currentTime}>{currentTime}</Text>
         </View>
