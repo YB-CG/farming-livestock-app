@@ -156,7 +156,7 @@ const LivestockProfileScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
             <Icon name="arrow-back" size={28} color="#FFFFFF" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('EditLivestock', { id })} style={styles.headerButton}>
+          <TouchableOpacity onPress={() => navigation.navigate('UpdateLivestock', { id })} style={styles.headerButton}>
             <Icon name="edit" size={28} color="#FFFFFF" />
           </TouchableOpacity>
         </View>

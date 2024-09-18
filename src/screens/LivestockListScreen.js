@@ -51,7 +51,7 @@ const LivestockListScreen = ({ navigation }) => {
         <View style={styles.actionsContainer}>
           <TouchableOpacity 
             style={[styles.actionButton, styles.editButton]}
-            onPress={() => navigation.navigate('EditLivestock', { id: item.id })}
+            onPress={() => navigation.navigate('UpdateLivestock', { id: item.id })}
           >
             <Icon name="edit" size={24} color="#FFF" />
           </TouchableOpacity>
