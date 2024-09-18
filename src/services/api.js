@@ -207,25 +207,16 @@ export const getCategories = () => api.get('/inventory/categories/');
 // /inventory/products/category/{category_id}/
 export const getProductsByCategory = (categoryId) => api.get(`/inventory/products/category/${categoryId}/`);
 
-export const getCalendarEvents = async () => {
-  // Implement the API call to fetch all calendar events
-};
+// Calendar Events API functions
+export const getCalendarEvents = () => api.get('/tasks/calendar-events/');
 
-export const getCalendarEvent = async (eventId) => {
-  // Implement the API call to fetch a single calendar event by ID
-};
+export const getCalendarEvent = (eventId) => api.get(`/tasks/calendar-events/${eventId}/`);
 
-export const postCalendarEvent = async (eventData) => {
-  // Implement the API call to create a new calendar event
-};
+export const createCalendarEvent = (eventData) => api.post('/tasks/calendar-events/', eventData);
 
-export const updateCalendarEvent = async (eventId, eventData) => {
-  // Implement the API call to update an existing calendar event
-};
+export const updateCalendarEvent = (eventId, eventData) => api.patch(`/tasks/calendar-events/${eventId}/`, eventData);
 
-export const deleteCalendarEvent = async (eventId) => {
-  // Implement the API call to delete a calendar event
-};
+export const deleteCalendarEvent = (eventId) => api.delete(`/tasks/calendar-events/${eventId}/`);
 
 
 // getTasks function

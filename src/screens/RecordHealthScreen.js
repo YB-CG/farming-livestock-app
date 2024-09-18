@@ -4,13 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
-
-import { getCalendarEvents } from '../services/api'; // Assume this function exists to fetch calendar events
+import Loader from '../components/Loader';
+import { getCalendarEvents } from '../services/api';
 
 const RecordHealthScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
   const [events, setEvents] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -18,11 +19,14 @@ const RecordHealthScreen = ({ navigation }) => {
 
   const fetchEvents = async () => {
     try {
+      setIsLoading(true);
       const response = await getCalendarEvents();
-      setEvents(response.data);
-      updateMarkedDates(response.data);
+      setEvents(response.data.results);
+      updateMarkedDates(response.data.results);
     } catch (error) {
       console.error('Failed to fetch calendar events', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,6 +122,7 @@ const RecordHealthScreen = ({ navigation }) => {
           <Text style={styles.noEventsText}>No health records for this day</Text>
         )}
       </View>
+      {isLoading && <Loader />}
     </SafeAreaView>
   );
 };

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
-
-import { postCalendarEvent } from '../services/api'; // Assume this function exists to post a new calendar event
+import Loader from '../components/Loader';
+import { createCalendarEvent } from '../services/api';
 
 const AddHealthRecord = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -15,6 +15,7 @@ const AddHealthRecord = ({ navigation }) => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [allDay, setAllDay] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onStartChange = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
@@ -33,18 +34,33 @@ const AddHealthRecord = ({ navigation }) => {
 
   const handleSubmit = async () => {
     try {
+      if (!title.trim()) {
+        Alert.alert('Error', 'Please enter a title for the health record.');
+        return;
+      }
+
+      setIsLoading(true);
       const eventData = {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         start_time: startDate.toISOString(),
         end_time: endDate.toISOString(),
         all_day: allDay,
       };
-      await postCalendarEvent(eventData);
-      navigation.goBack();
+      
+      const response = await createCalendarEvent(eventData);
+      
+      if (response.status === 201) {
+        Alert.alert('Success', 'Health record added successfully');
+        navigation.goBack();
+      } else {
+        throw new Error('Failed to add health record');
+      }
     } catch (error) {
       console.error('Failed to add health record', error);
-      // Handle error (e.g., show an alert to the user)
+      Alert.alert('Error', 'Failed to add health record. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,6 +136,7 @@ const AddHealthRecord = ({ navigation }) => {
           />
         )}
       </ScrollView>
+      {isLoading && <Loader />}
     </SafeAreaView>
   );
 };

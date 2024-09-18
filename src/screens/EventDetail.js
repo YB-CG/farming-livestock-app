@@ -5,7 +5,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
 
-import { getCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../services/api'; // Assume these functions exist
+import { getCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../services/api';
+import Loader from '../components/Loader';
 
 const EventDetail = ({ route, navigation }) => {
   const { eventId } = route.params;
@@ -18,12 +19,16 @@ const EventDetail = ({ route, navigation }) => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [allDay, setAllDay] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchEvent();
   }, []);
 
   const fetchEvent = async () => {
+    setIsLoading(true);
     try {
       const response = await getCalendarEvent(eventId);
       setEvent(response.data);
@@ -34,7 +39,9 @@ const EventDetail = ({ route, navigation }) => {
       setAllDay(response.data.all_day);
     } catch (error) {
       console.error('Failed to fetch event details', error);
-      // Handle error (e.g., show an alert to the user)
+      Alert.alert('Error', 'Failed to load event details. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +61,7 @@ const EventDetail = ({ route, navigation }) => {
   };
 
   const handleUpdate = async () => {
+    setIsUpdating(true);
     try {
       const updatedEventData = {
         title,
@@ -64,10 +72,13 @@ const EventDetail = ({ route, navigation }) => {
       };
       await updateCalendarEvent(eventId, updatedEventData);
       setIsEditing(false);
-      fetchEvent(); // Refresh the event data
+      Alert.alert('Success', 'Health record updated successfully');
+      await fetchEvent(); // Refresh the event data
     } catch (error) {
       console.error('Failed to update health record', error);
-      // Handle error (e.g., show an alert to the user)
+      Alert.alert('Error', 'Failed to update health record. Please try again.');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -83,17 +94,25 @@ const EventDetail = ({ route, navigation }) => {
   };
 
   const confirmDelete = async () => {
+    setIsDeleting(true);
     try {
       await deleteCalendarEvent(eventId);
+      Alert.alert('Success', 'Health record deleted successfully');
       navigation.goBack();
     } catch (error) {
       console.error('Failed to delete health record', error);
-      // Handle error (e.g., show an alert to the user)
+      Alert.alert('Error', 'Failed to delete health record. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   if (!event) {
-    return <View style={styles.container}><Text>Loading...</Text></View>;
+    return <View style={styles.container}><Text>No event data available</Text></View>;
   }
 
   return (
@@ -105,8 +124,8 @@ const EventDetail = ({ route, navigation }) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Health Record</Text>
           {isEditing ? (
-            <TouchableOpacity onPress={handleUpdate}>
-              <Text style={styles.saveButton}>Save</Text>
+            <TouchableOpacity onPress={handleUpdate} disabled={isUpdating}>
+              <Text style={styles.saveButton}>{isUpdating ? 'Saving...' : 'Save'}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => setIsEditing(true)}>
@@ -158,8 +177,14 @@ const EventDetail = ({ route, navigation }) => {
           </View>
 
           {isEditing && (
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-              <Text style={styles.deleteButtonText}>Delete Health Record</Text>
+            <TouchableOpacity 
+              style={styles.deleteButton} 
+              onPress={handleDelete}
+              disabled={isDeleting}
+            >
+              <Text style={styles.deleteButtonText}>
+                {isDeleting ? 'Deleting...' : 'Delete Health Record'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -183,6 +208,7 @@ const EventDetail = ({ route, navigation }) => {
           />
         )}
       </ScrollView>
+      {(isUpdating || isDeleting) && <Loader />}
     </SafeAreaView>
   );
 };
