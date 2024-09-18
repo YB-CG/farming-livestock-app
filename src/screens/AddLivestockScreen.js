@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import { TextInput, Button } from '../components/ui/form';
+import { createLivestock } from '../services/api';
+import Loader from '../components/Loader';
 
-const animalTypes = ['Cow', 'Cattle', 'Sheep', 'Goat', 'Chicken'];
+const animalTypes = ['Cow', 'Sheep', 'Goat', 'Chicken'];
 const breedsByType = {
   Cow: ['Holstein', 'Jersey', 'Angus', 'Hereford', 'Simmental'],
-  Cattle: ['Brahman', 'Charolais', 'Limousin', 'Gelbvieh', 'Shorthorn'],
   Sheep: ['Merino', 'Suffolk', 'Dorper', 'Romney', 'Texel'],
   Goat: ['Boer', 'Nubian', 'Alpine', 'Saanen', 'Angora'],
   Chicken: ['Leghorn', 'Rhode Island Red', 'Plymouth Rock', 'Orpington', 'Australorp'],
@@ -27,10 +29,12 @@ const AddLivestockScreen = ({ navigation }) => {
     status: 'Active',
     current_weight: '',
     current_age: '',
+    photo: null,
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [activeDateField, setActiveDateField] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (name, value) => {
     if (value !== undefined) {
@@ -48,6 +52,29 @@ const AddLivestockScreen = ({ navigation }) => {
   const showDatepicker = (field) => {
     setShowDatePicker(true);
     setActiveDateField(field);
+  };
+
+  const pickImage = async (useCamera = false) => {
+    let result;
+    if (useCamera) {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+    } else {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+    }
+
+    if (!result.canceled) {
+      setFormData({ ...formData, photo: result.assets[0] });
+    }
   };
 
   const renderStep1 = () => (
@@ -76,7 +103,6 @@ const AddLivestockScreen = ({ navigation }) => {
       </Picker>
     </View>
   );
-  
 
   const renderStep2 = () => (
     <View>
@@ -90,7 +116,6 @@ const AddLivestockScreen = ({ navigation }) => {
         selectedValue={formData.gender}
         onValueChange={(value) => handleInputChange('gender', value)}
       >
-        <Picker.Item label="Select Gender" value="" />
         <Picker.Item label="Male" value="Male" />
         <Picker.Item label="Female" value="Female" />
       </Picker>
@@ -125,9 +150,9 @@ const AddLivestockScreen = ({ navigation }) => {
         selectedValue={formData.acquisition_method}
         onValueChange={(value) => handleInputChange('acquisition_method', value)}
       >
-        <Picker.Item label="Select Acquisition Method" value="" />
+        <Picker.Item label="Breeding" value="Breeding" />
         <Picker.Item label="Purchase" value="Purchase" />
-        <Picker.Item label="Born on Farm" value="Born on Farm" />
+        <Picker.Item label="Trade" value="Trade" />
         <Picker.Item label="Gift" value="Gift" />
       </Picker>
 
@@ -140,6 +165,16 @@ const AddLivestockScreen = ({ navigation }) => {
         <Picker.Item label="Sold" value="Sold" />
         <Picker.Item label="Deceased" value="Deceased" />
       </Picker>
+
+      <Text style={styles.label}>photo (Optional)</Text>
+      <View style={styles.imageContainer}>
+        {formData.photo && (
+          <Image source={{ uri: formData.photo.uri }} style={styles.image} />
+        )}
+        <View style={styles.imageButtonContainer}>
+          <Button onPress={() => pickImage(false)}>Choose from Gallery</Button>
+        </View>
+      </View>
     </View>
   );
 
@@ -156,12 +191,46 @@ const AddLivestockScreen = ({ navigation }) => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    // Here you would typically send the data to your API
-    // For now, we'll just log it and navigate back
-    navigation.goBack();
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const livestockData = new FormData();
+  
+      Object.keys(formData).forEach(key => {
+        if (key === 'photo' && formData[key]) {
+          // Append image file correctly if a photo exists
+          livestockData.append('photo', {
+            uri: formData[key].uri,
+            type: 'image/jpeg', // Ensure the correct mime type
+            name: 'livestock_photo.jpg',
+          });
+        } else if (formData[key] instanceof Date) {
+          // Convert dates to ISO string (or the format expected by the server)
+          livestockData.append(key, formData[key].toISOString().split('T')[0]);
+        } else if (formData[key]) {
+          // Append other form fields, converting them to string if necessary
+          livestockData.append(key, String(formData[key]));
+        }
+      });
+  
+      // API call
+      await createLivestock(livestockData);
+      console.log('Livestock created successfully');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to create livestock:', error.response?.data || error.message);
+      // Handle error (e.g., show an alert)
+    } finally {
+      setLoading(false);
+    }
   };
+  
+  
+  
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -191,13 +260,12 @@ const AddLivestockScreen = ({ navigation }) => {
 
       {showDatePicker && activeDateField && (
         <DateTimePicker
-          value={formData[activeDateField] || new Date()}  // Ensure a valid Date object is passed
+          value={formData[activeDateField] || new Date()}
           mode="date"
           display="default"
           onChange={handleDateChange}
         />
       )}
-
     </SafeAreaView>
   );
 };
@@ -229,6 +297,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
+  },
+  imageContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  imageButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
   },
 });
 

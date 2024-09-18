@@ -17,6 +17,14 @@ import { Picker } from '@react-native-picker/picker';
 import { getLivestock, updateLivestock, deleteLivestock } from '../services/api';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+const animalTypes = ['Cow', 'Sheep', 'Goat', 'Chicken'];
+const breedsByType = {
+  Cow: ['Holstein', 'Jersey', 'Angus', 'Hereford', 'Simmental'],
+  Sheep: ['Merino', 'Suffolk', 'Dorper', 'Romney', 'Texel'],
+  Goat: ['Boer', 'Nubian', 'Alpine', 'Saanen', 'Angora'],
+  Chicken: ['Leghorn', 'Rhode Island Red', 'Plymouth Rock', 'Orpington', 'Australorp'],
+};
+
 const UpdateLivestockScreen = ({ route, navigation }) => {
   const { id } = route.params;
   const [livestock, setLivestock] = useState(null);
@@ -86,9 +94,13 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setLivestock({ ...livestock, photo: result.uri });
+    if (!result.canceled) {
+      setLivestock({ ...livestock, photo: result.assets[0] });
     }
+  };
+
+  const handleInputChange = (name, value) => {
+    setLivestock({ ...livestock, [name]: value });
   };
 
   if (isLoading) {
@@ -114,7 +126,7 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
 
         <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
           {livestock.photo ? (
-            <Image source={{ uri: livestock.photo }} style={styles.image} />
+            <Image source={{ uri: livestock.photo.uri || livestock.photo }} style={styles.image} />
           ) : (
             <View style={styles.placeholderImage}>
               <Icon name="add-a-photo" size={40} color="#757575" />
@@ -124,33 +136,29 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={livestock.name}
-            onChangeText={(text) => setLivestock({ ...livestock, name: text })}
-            placeholder="Enter name"
-          />
 
           <Text style={styles.label}>Type</Text>
           <Picker
             selectedValue={livestock.animal_type}
-            onValueChange={(itemValue) => setLivestock({ ...livestock, animal_type: itemValue })}
+            onValueChange={(itemValue) => handleInputChange('animal_type', itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Cow" value="Cow" />
-            <Picker.Item label="Sheep" value="Sheep" />
-            <Picker.Item label="Goat" value="Goat" />
-            <Picker.Item label="Chicken" value="Chicken" />
+            {animalTypes.map((type) => (
+              <Picker.Item key={type} label={type} value={type} />
+            ))}
           </Picker>
 
           <Text style={styles.label}>Breed</Text>
-          <TextInput
-            style={styles.input}
-            value={livestock.breed}
-            onChangeText={(text) => setLivestock({ ...livestock, breed: text })}
-            placeholder="Enter breed"
-          />
+          <Picker
+            selectedValue={livestock.breed}
+            onValueChange={(itemValue) => handleInputChange('breed', itemValue)}
+            style={styles.picker}
+            enabled={!!livestock.animal_type}
+          >
+            {(breedsByType[livestock.animal_type] || []).map((breed) => (
+              <Picker.Item key={breed} label={breed} value={breed} />
+            ))}
+          </Picker>
 
           <Text style={styles.label}>Date of Birth</Text>
           <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
@@ -164,7 +172,7 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
               onChange={(event, selectedDate) => {
                 setShowDatePicker(false);
                 if (selectedDate) {
-                  setLivestock({ ...livestock, date_of_birth: selectedDate.toISOString() });
+                  handleInputChange('date_of_birth', selectedDate);
                 }
               }}
             />
@@ -173,7 +181,7 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
           <Text style={styles.label}>Gender</Text>
           <Picker
             selectedValue={livestock.gender}
-            onValueChange={(itemValue) => setLivestock({ ...livestock, gender: itemValue })}
+            onValueChange={(itemValue) => handleInputChange('gender', itemValue)}
             style={styles.picker}
           >
             <Picker.Item label="Male" value="Male" />
@@ -183,11 +191,22 @@ const UpdateLivestockScreen = ({ route, navigation }) => {
           <Text style={styles.label}>Weight (kg)</Text>
           <TextInput
             style={styles.input}
-            value={livestock.current_weight.toString()}
-            onChangeText={(text) => setLivestock({ ...livestock, current_weight: parseFloat(text) || 0 })}
+            value={livestock.current_weight ? livestock.current_weight.toString() : ''}
+            onChangeText={(text) => handleInputChange('current_weight', parseFloat(text) || 0)}
             keyboardType="numeric"
             placeholder="Enter weight"
           />
+
+          <Text style={styles.label}>Status</Text>
+          <Picker
+            selectedValue={livestock.status}
+            onValueChange={(itemValue) => handleInputChange('status', itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Active" value="Active" />
+            <Picker.Item label="Sold" value="Sold" />
+            <Picker.Item label="Deceased" value="Deceased" />
+          </Picker>
         </View>
 
         <TouchableOpacity style={styles.updateButton} onPress={handleUpdate} disabled={isSaving}>

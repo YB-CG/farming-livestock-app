@@ -123,10 +123,47 @@ export const getGoogleLoginUrl = () => api.get('/auth/google/login/');
 
 
 // Create livestock
-export const createLivestock = (livestockData) => api.post('/management/livestock/', livestockData);
+export const createLivestock = (livestockData) => {
+  return api.post('/management/livestock/', livestockData, {
+    headers: {
+      'Content-Type': 'multipart/form-data', // This ensures that the data is sent as form-data
+    },
+  });
+};
+
 
 // Update livestock
-export const updateLivestock = (livestockId, livestockData) => api.patch(`/management/livestock/${livestockId}/`, livestockData);
+// Update the updateLivestock function to use FormData
+export const updateLivestock = async (livestockId, livestockData) => {
+  const formData = new FormData();
+
+  Object.keys(livestockData).forEach(key => {
+    if (livestockData[key] !== null && livestockData[key] !== undefined) {
+      if (key === 'photo' && livestockData[key]?.uri) {
+        const uriParts = livestockData[key].uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        formData.append('photo', {
+          uri: livestockData[key].uri,
+          name: `photo.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      } else {
+        formData.append(key, livestockData[key]);
+      }
+    }
+  });
+
+  try {
+    return await api.patch(`/management/livestock/${livestockId}/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  } catch (error) {
+    throw new Error('Failed to update livestock: ' + error.message);
+  }
+};
+
 
 // Delete livestock
 export const deleteLivestock = (livestockId) => api.delete(`/management/livestock/${livestockId}/`);

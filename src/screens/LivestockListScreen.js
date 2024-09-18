@@ -114,7 +114,6 @@ const LivestockListScreen = ({ navigation }) => {
       <View style={styles.filterContainer}>
         {renderFilterButton('All')}
         {renderFilterButton('Cow')}
-        {renderFilterButton('Cattle')}
         {renderFilterButton('Sheep')}
         {renderFilterButton('Goat')}
         {renderFilterButton('Chicken')}

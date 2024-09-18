@@ -33,14 +33,6 @@ const LivestockProfileScreen = ({ route, navigation }) => {
       <CardHeader>Basic Information</CardHeader>
       <CardContent>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>ID:</Text>
-          <Text style={styles.infoValue}>{livestock.id}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Name:</Text>
-          <Text style={styles.infoValue}>{livestock.name}</Text>
-        </View>
-        <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Type:</Text>
           <Text style={styles.infoValue}>{livestock.animal_type}</Text>
         </View>
