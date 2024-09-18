@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getUserProfile } from '../services/api';
+import Loader from '../components/Loader';
 
 const ProfileScreen = ({ navigation }) => {
   const [userProfile, setUserProfile] = useState(null);
@@ -23,7 +24,7 @@ const ProfileScreen = ({ navigation }) => {
   if (!userProfile) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <Loader />
       </View>
     );
   }
@@ -51,13 +52,12 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.infoSection}>
-          <InfoItem icon="business" label="Farm Name" value={userProfile.farm_name || 'Not provided'} />
+          <InfoItem icon="business" label="Farm Name" value={userProfile.country || 'Not provided'} />
           <InfoItem icon="phone" label="Phone" value={userProfile.phone_number || 'Not provided'} />
-          <InfoItem icon="cake" label="Date of Birth" value={userProfile.date_of_birth ? new Date(userProfile.date_of_birth).toDateString() : 'Not provided'} />
-          {/* <InfoItem icon="home" label="Address" value={userProfile.address || 'Not provided'} /> */}
+          {/* <InfoItem icon="cake" label="Date of Birth" value={userProfile.date_of_birth ? new Date(userProfile.date_of_birth).toDateString() : 'Not provided'} /> */}
+          <InfoItem icon="home" label="Address" value={userProfile.address || 'Not provided'} />
           <InfoItem icon="location-city" label="City" value={userProfile.city || 'Not provided'} />
           <InfoItem icon="map" label="State/Province" value={userProfile.state_province || 'Not provided'} />
-          {/* <InfoItem icon="public" label="Country" value={userProfile.country || 'Not provided'} /> */}
           <InfoItem icon="markunread-mailbox" label="Postal Code" value={userProfile.postal_code || 'Not provided'} />
 
         </View>

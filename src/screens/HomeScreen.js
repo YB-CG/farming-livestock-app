@@ -6,6 +6,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LineChart } from 'react-native-chart-kit';
 import moment from 'moment';
+import Loader from '../components/Loader';
 
 const HomeScreen = ({ navigation }) => {
   const [userProfile, setUserProfile] = useState(null);

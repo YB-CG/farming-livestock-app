@@ -81,7 +81,43 @@ export const register = (userData) => api.post('/account/user/register/', userDa
 export const forgotPassword = (email) => api.post('/auth/password/reset/', { email });
 export const getUserProfile = () => api.get('/account/user/');
 export const getFarmInfo = (farmId) => api.get(`/account/farm/${farmId}/`);
-export const updateUserProfile = (userData) => api.patch('/account/user/', userData);
+
+export const updateUserProfile = async (userData) => {
+  const formData = new FormData();
+  
+  Object.keys(userData).forEach(key => {
+    if (userData[key]) {
+      // For profile_picture field, append the file data
+      if (key === 'profile_picture' && userData[key]) {
+        const fileUri = userData[key].uri;
+        const fileName = fileUri.split('/').pop();
+        const fileType = fileName.split('.').pop();
+        
+        formData.append('profile_picture', {
+          uri: fileUri,
+          name: fileName,
+          type: `image/${fileType}`, // Ensure the correct mime type for the image file
+        });
+      } else {
+        formData.append(key, userData[key]);
+      }
+    }
+  });
+
+  try {
+    const response = await api.patch('/account/user/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to update profile', error);
+    throw error; // Re-throw error to be handled elsewhere
+  }
+};
+
+
 export const updateFarmInfo = (farmId, farmData) => api.patch(`/account/farm/${farmId}/`, farmData);
 export const getGoogleLoginUrl = () => api.get('/auth/google/login/');
 

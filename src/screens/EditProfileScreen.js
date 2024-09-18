@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { getUserProfile, updateUserProfile } from '../services/api';
+import Loader from '../components/Loader';
 
 const EditProfileScreen = ({ navigation }) => {
   const [userProfile, setUserProfile] = useState({
@@ -14,18 +13,13 @@ const EditProfileScreen = ({ navigation }) => {
     last_name: '',
     profile_picture: null,
     phone_number: '',
-    date_of_birth: new Date(),
-    gender: 'male',
     address: '',
     city: '',
     state_province: '',
-    country: '',
     postal_code: '',
-    farm_name: '',
-    farm_type: '',
+    country: '',
   });
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -33,33 +27,33 @@ const EditProfileScreen = ({ navigation }) => {
 
   const fetchUserProfile = async () => {
     try {
+      setLoading(true);
       const response = await getUserProfile();
       setUserProfile(response.data);
     } catch (error) {
       console.error('Failed to fetch user profile', error);
+      Alert.alert('Error', 'Failed to fetch user profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdateProfile = async () => {
     try {
+      setLoading(true);
       await updateUserProfile(userProfile);
       Alert.alert('Success', 'Profile updated successfully');
       navigation.goBack();
     } catch (error) {
       console.error('Failed to update profile', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleChange = (key, value) => {
     setUserProfile(prevState => ({ ...prevState, [key]: value }));
-  };
-
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      handleChange('date_of_birth', selectedDate);
-    }
   };
 
   const pickImage = async () => {
@@ -70,8 +64,8 @@ const EditProfileScreen = ({ navigation }) => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      handleChange('profile_picture', result.uri);
+    if (!result.canceled) {
+      handleChange('profile_picture', result.assets[0]);
     }
   };
 
@@ -88,75 +82,81 @@ const EditProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.form}>
-          <TouchableOpacity style={styles.profilePictureContainer} onPress={pickImage}>
-            {userProfile.profile_picture ? (
-              <Image source={{ uri: userProfile.profile_picture }} style={styles.profilePicture} />
-            ) : (
-              <View style={styles.profilePicturePlaceholder}>
-                <Icon name="person" size={50} color="#CCCCCC" />
-              </View>
-            )}
-            <Text style={styles.changePhotoText}>Change Photo</Text>
-          </TouchableOpacity>
+        {loading ? (
+          <Loader />
+        ) : (
+          <View style={styles.form}>
+            <TouchableOpacity style={styles.profilePictureContainer} onPress={pickImage}>
+              {userProfile.profile_picture ? (
+                <Image 
+                  source={{ uri: userProfile.profile_picture.uri || userProfile.profile_picture }} 
+                  style={styles.profilePicture} 
+                />
+              ) : (
+                <View style={styles.profilePicturePlaceholder}>
+                  <Icon name="person" size={50} color="#CCCCCC" />
+                </View>
+              )}
+              <Text style={styles.changePhotoText}>Change Photo</Text>
+            </TouchableOpacity>
 
-          <InputField
-            icon="person"
-            placeholder="First Name"
-            value={userProfile.first_name}
-            onChangeText={(text) => handleChange('first_name', text)}
-          />
-          <InputField
-            icon="person"
-            placeholder="Last Name"
-            value={userProfile.last_name}
-            onChangeText={(text) => handleChange('last_name', text)}
-          />
-          <InputField
-            icon="email"
-            placeholder="Email"
-            value={userProfile.email}
-            editable={false}
-          />
-        <InputField
-            icon="business"
-            placeholder="Farm Name"
-            value={userProfile.farm_name}
-            onChangeText={(text) => handleChange('farm_name', text)}
-          />
-          <InputField
-            icon="phone"
-            placeholder="Phone Number"
-            value={userProfile.phone_number}
-            onChangeText={(text) => handleChange('phone_number', text)}
-            keyboardType="phone-pad"
-          />
-          <InputField
-            icon="home"
-            placeholder="Address"
-            value={userProfile.address}
-            onChangeText={(text) => handleChange('address', text)}
-          />
-          <InputField
-            icon="location-city"
-            placeholder="City"
-            value={userProfile.city}
-            onChangeText={(text) => handleChange('city', text)}
-          />
-          <InputField
-            icon="map"
-            placeholder="State/Province"
-            value={userProfile.state_province}
-            onChangeText={(text) => handleChange('state_province', text)}
-          />
-          <InputField
-            icon="markunread-mailbox"
-            placeholder="Postal Code"
-            value={userProfile.postal_code}
-            onChangeText={(text) => handleChange('postal_code', text)}
-          />
-
-        </View>
+            <InputField
+              icon="person"
+              placeholder="First Name"
+              value={userProfile.first_name}
+              onChangeText={(text) => handleChange('first_name', text)}
+            />
+            <InputField
+              icon="person"
+              placeholder="Last Name"
+              value={userProfile.last_name}
+              onChangeText={(text) => handleChange('last_name', text)}
+            />
+            <InputField
+              icon="email"
+              placeholder="Email"
+              value={userProfile.email}
+              editable={false}
+            />
+            <InputField
+              icon="business"
+              placeholder="Farm Name"
+              value={userProfile.country}
+              onChangeText={(text) => handleChange('country', text)}
+            />
+            <InputField
+              icon="phone"
+              placeholder="Phone Number"
+              value={userProfile.phone_number}
+              onChangeText={(text) => handleChange('phone_number', text)}
+              keyboardType="phone-pad"
+            />
+            <InputField
+              icon="home"
+              placeholder="Address"
+              value={userProfile.address}
+              onChangeText={(text) => handleChange('address', text)}
+            />
+            <InputField
+              icon="location-city"
+              placeholder="City"
+              value={userProfile.city}
+              onChangeText={(text) => handleChange('city', text)}
+            />
+            <InputField
+              icon="map"
+              placeholder="State/Province"
+              value={userProfile.state_province}
+              onChangeText={(text) => handleChange('state_province', text)}
+            />
+            <InputField
+              icon="markunread-mailbox"
+              placeholder="Postal Code"
+              value={userProfile.postal_code}
+              onChangeText={(text) => handleChange('postal_code', text)}
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
