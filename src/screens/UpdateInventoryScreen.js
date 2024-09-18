@@ -1,31 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
+import { getProduct, updateProduct, deleteProduct } from '../services/api';
 
 const UpdateInventoryScreen = ({ navigation, route }) => {
   const { productId, categories } = route.params;
-  // In a real app, you would fetch the product details using the productId
-  // For this example, we'll use mock data
-  const initialProduct = {
-    id: productId,
-    name: "Sample Product",
-    description: "This is a sample product description.",
-    price: "1000",
-    stock: "10",
-    category: "4ec6e7ac-1ab9-41cb-8cb9-466245b52303"
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetchProductDetails();
+  }, []);
+
+  const fetchProductDetails = async () => {
+    try {
+      const response = await getProduct(productId);
+      const product = response.data;
+      
+      setName(product.name || '');
+      setDescription(product.description || '');
+      setPrice(product.price ? product.price.toString() : '');
+      setStock(product.stock ? product.stock.toString() : '');
+      setImage(product.image || null);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      Alert.alert('Error', 'Failed to load product details. Please try again.');
+    }
   };
 
-  const [name, setName] = useState(initialProduct.name);
-  const [description, setDescription] = useState(initialProduct.description);
-  const [price, setPrice] = useState(initialProduct.price);
-  const [stock, setStock] = useState(initialProduct.stock.toString());
-  const [category, setCategory] = useState(initialProduct.category);
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-  const handleUpdateProduct = () => {
-    // Here you would typically make an API call to update the product
-    console.log({ id: productId, name, description, price, stock, category });
-    navigation.goBack();
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleUpdateProduct = async () => {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('stock', stock);
+
+    if (image && image.startsWith('file://')) {
+      const uriParts = image.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      formData.append('image', {
+        uri: image,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+      });
+    }
+
+    try {
+      await updateProduct(productId, formData);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error updating product:', error);
+      Alert.alert('Error', 'Failed to update product. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteProduct = () => {
@@ -36,10 +83,14 @@ const UpdateInventoryScreen = ({ navigation, route }) => {
         { text: "Cancel", style: "cancel" },
         { 
           text: "Delete", 
-          onPress: () => {
-            // Here you would typically make an API call to delete the product
-            console.log(`Deleting product with id: ${productId}`);
-            navigation.navigate('Inventory');
+          onPress: async () => {
+            try {
+              await deleteProduct(productId);
+              navigation.navigate('Inventory');
+            } catch (error) {
+              console.error('Error deleting product:', error);
+              Alert.alert('Error', 'Failed to delete product. Please try again.');
+            }
           },
           style: "destructive"
         }
@@ -60,41 +111,50 @@ const UpdateInventoryScreen = ({ navigation, route }) => {
         />
         
         <TextInput
-          style={styles.input}
+          style={[styles.input, styles.textArea]}
           placeholder="Description"
           value={description}
           onChangeText={setDescription}
           multiline
+          numberOfLines={4}
         />
         
-        <TextInput
-          style={styles.input}
-          placeholder="Price"
-          value={price}
-          onChangeText={setPrice}
-          keyboardType="numeric"
-        />
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, styles.halfWidth]}
+            placeholder="Price"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
+          
+          <TextInput
+            style={[styles.input, styles.halfWidth]}
+            placeholder="Stock"
+            value={stock}
+            onChangeText={setStock}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+          <Text style={styles.imageButtonText}>
+            {image ? 'Change Image' : 'Add Product Image'}
+          </Text>
+        </TouchableOpacity>
         
-        <TextInput
-          style={styles.input}
-          placeholder="Stock"
-          value={stock}
-          onChangeText={setStock}
-          keyboardType="numeric"
-        />
+        {image && (
+          <Image source={{ uri: image }} style={styles.previewImage} />
+        )}
         
-        <Picker
-          selectedValue={category}
-          style={styles.picker}
-          onValueChange={(itemValue) => setCategory(itemValue)}
+        <TouchableOpacity
+          style={[styles.updateButton, isLoading && styles.disabledButton]}
+          onPress={handleUpdateProduct}
+          disabled={isLoading}
         >
-          {(categories || []).map((cat) => (
-            <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-          ))}
-        </Picker>
-        
-        <TouchableOpacity style={styles.updateButton} onPress={handleUpdateProduct}>
-          <Text style={styles.buttonText}>Update Product</Text>
+          <Text style={styles.buttonText}>
+            {isLoading ? 'Updating Product...' : 'Update Product'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteProduct}>
@@ -123,9 +183,47 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  halfWidth: {
+    width: '48%',
+  },
+  pickerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   picker: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  imageButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  imageButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  previewImage: {
+    width: '100%',
+    height: 200,
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -142,10 +240,29 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
+  disabledButton: {
+    backgroundColor: '#A5D6A7',
+  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  categoryContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    color: '#333',
+  },
+  categoryText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#555',
+    paddingVertical: 8,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
   },
 });
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserProfile, getWeather, getTasks, getAlerts } from '../services/api';
+import { getUserProfile, getWeather, getTasks, getCategories } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LineChart } from 'react-native-chart-kit';
@@ -12,35 +12,10 @@ const HomeScreen = ({ navigation }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [weather, setWeather] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [alerts, setAlerts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [currentTime, setCurrentTime] = useState(moment().format('LT'));
   const { state } = useContext(AuthContext);
-  const categories = [
-    {
-      id: 1,
-      name: "Feed",
-      description: "Animal feed for various livestock, including grains and supplements.",
-      icon: "food-variant"
-    },
-    {
-      id: 2,
-      name: "Vaccines",
-      description: "Vaccines and other medical supplies for livestock health management.",
-      icon: "needle"
-    },
-    {
-      id: 3,
-      name: "Equipment",
-      description: "Farming tools and machinery used in livestock operations.",
-      icon: "tractor"
-    },
-    {
-      id: 4,
-      name: "Fencing Materials",
-      description: "Supplies for building and maintaining enclosures for livestock.",
-      icon: "fence"
-    }
-  ];
+
   useEffect(() => {
     if (state.isNewUser) {
       navigation.navigate('PersonalInfo');
@@ -51,7 +26,7 @@ const HomeScreen = ({ navigation }) => {
     fetchUserProfile();
     fetchWeather();
     fetchTasks();
-    fetchAlerts();
+    fetchCategories();
 
     const interval = setInterval(() => {
       setCurrentTime(moment().format('LT'));
@@ -81,20 +56,21 @@ const HomeScreen = ({ navigation }) => {
   const fetchTasks = async () => {
     try {
       const tasksData = await getTasks();
-      setTasks(tasksData);
+      setTasks(tasksData.data.results);
     } catch (error) {
       console.error('Failed to fetch tasks', error);
     }
   };
 
-  const fetchAlerts = async () => {
+  const fetchCategories = async () => {
     try {
-      const alertsData = await getAlerts();
-      setAlerts(alertsData);
+      const response = await getCategories();
+      setCategories(response.data.results);
     } catch (error) {
-      console.error('Failed to fetch alerts', error);
+      console.error('Failed to fetch categories', error);
     }
   };
+
 
   const renderWeatherIcon = () => {
     if (!weather) return null;
@@ -126,11 +102,11 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.farmName}>{userProfile?.first_name || 'Farm Name'} {userProfile?.last_name}</Text>
+            <Text style={styles.farmName}>{userProfile?.first_name || ' '} {userProfile?.last_name}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Image
-              source={{ uri: userProfile?.profile_picture || 'https://via.placeholder.com/40' }}
+              source={{ uri: userProfile?.profile_picture  }}
               style={styles.avatar}
             />
           </TouchableOpacity>
@@ -139,8 +115,8 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.weatherCard}>
           {renderWeatherIcon()}
           <View>
-            <Text style={styles.weatherTemp}>{weather?.temp}°C</Text>
-            <Text style={styles.weatherDesc}>{weather?.description}</Text>
+          <Text style={styles.weatherTemp}>{weather?.main?.temp}°C</Text>
+          <Text style={styles.weatherDesc}>{weather?.weather[0]?.description}</Text>
 
             
           </View>
@@ -164,16 +140,21 @@ const HomeScreen = ({ navigation }) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tasks for Today</Text>
-          {tasks.slice(0, 3).map((task, index) => (
-            <View key={index} style={styles.taskItem}>
-              <Icon name="check-circle-outline" size={24} color="#4CAF50" />
-              <Text style={styles.taskText}>{task.title}</Text>
-            </View>
-          ))}
+          {(tasks && tasks.length > 0) ? (
+            tasks.slice(0, 3).map((task, index) => (
+              <View key={index} style={styles.taskItem}>
+                <Icon name="check-circle-outline" size={24} color="#4CAF50" />
+                <Text style={styles.taskText}>{task.title}</Text>
+              </View>
+            ))
+          ) : (
+            <Text>No tasks for today</Text>
+          )}
           <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
             <Text style={styles.seeAllLink}>See all tasks</Text>
           </TouchableOpacity>
         </View>
+
 
 
         <View style={styles.section}>

@@ -178,10 +178,34 @@ export const getLivestockList = (page = 1) => api.get('/management/livestock/', 
 
 // Get inventory/products/
 export const getProducts = () => api.get('/inventory/products/');
+// Get inventory/products/{product_id}/
+export const getProduct = (productId) => api.get(`/inventory/products/${productId}/`);
+// Create inventory/products/
+export const createProduct = (productData) => {
+  return api.post('/inventory/products/', productData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+// Update inventory/products/{product_id}/ with form data
+export const updateProduct = (productId, productData) => {
+  return api.patch(`/inventory/products/${productId}/`, productData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+// Delete inventory/products/{product_id}/
+export const deleteProduct = (productId) => api.delete(`/inventory/products/${productId}/`);
+
+
 // Get inventory/categories/
 export const getCategories = () => api.get('/inventory/categories/');
 
-
+// /inventory/products/category/{category_id}/
+export const getProductsByCategory = (categoryId) => api.get(`/inventory/products/category/${categoryId}/`);
 
 export const getCalendarEvents = async () => {
   // Implement the API call to fetch all calendar events
@@ -202,5 +226,23 @@ export const updateCalendarEvent = async (eventId, eventData) => {
 export const deleteCalendarEvent = async (eventId) => {
   // Implement the API call to delete a calendar event
 };
+
+
+// getTasks function
+export const getTasks = () => api.get('/tasks/tasks/');
+
+// getTask function
+export const getTask = (taskId) => api.get(`/tasks/${taskId}/`);
+
+// createTask function
+export const createTask = (taskData) => api.post('/tasks/', taskData);
+
+// updateTask function
+export const updateTask = (taskId, taskData) => api.patch(`/tasks/${taskId}/`, taskData);
+
+// deleteTask function
+export const deleteTask = (taskId) => api.delete(`/tasks/${taskId}/`);
+
+
 
 export default api;

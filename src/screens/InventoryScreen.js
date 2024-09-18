@@ -1,55 +1,87 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getCategories, getProductsByCategory } from '../services/api';
+import Loader from '../components/Loader';
 
-const categories = [
-  {
-    id: 1,
-    name: "Feed",
-    description: "Animal feed for various livestock, including grains and supplements.",
-    icon: "food-variant"
-  },
-  {
-    id: 2,
-    name: "Vaccines",
-    description: "Vaccines and other medical supplies for livestock health management.",
-    icon: "needle"
-  },
-  {
-    id: 3,
-    name: "Equipment",
-    description: "Farming tools and machinery used in livestock operations.",
-    icon: "tractor"
-  },
-  {
-    id: 4,
-    name: "Fencing Materials",
-    description: "Supplies for building and maintaining enclosures for livestock.",
-    icon: "fence"
-  }
-];
-
-const mockProducts = [
-  { id: 1, name: "Corn Feed", image: "https://example.com/corn-feed.jpg", stock: 500, category_id: 1 },
-  { id: 2, name: "Foot and Mouth Vaccine", image: "https://example.com/fmv.jpg", stock: 100, category_id: 2 },
-  { id: 3, name: "Tractor", image: "https://example.com/tractor.jpg", stock: 5, category_id: 3 },
-  { id: 4, name: "Barbed Wire", image: "https://example.com/barbed-wire.jpg", stock: 1000, category_id: 4 },
-];
+const categoryIcons = {
+  "Feed": "food-variant",
+  "Vaccines": "needle",
+  "Equipment": "tractor",
+  "Fencing Materials": "fence",
+};
 
 const InventoryScreen = ({ navigation }) => {
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingProducts, setIsFetchingProducts] = useState(false);
+  const [filterText, setFilterText] = useState('');
 
-  const renderCategoryCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.categoryCard}
-      onPress={() => setSelectedCategory(item.id)}
-    >
-      <Icon name={item.icon} size={40} color="#4CAF50" />
-      <Text style={styles.categoryName}>{item.name}</Text>
-      <Text style={styles.categoryDescription} numberOfLines={2}>{item.description}</Text>
-    </TouchableOpacity>
-  );
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchProducts(selectedCategory);
+    } else {
+      setProducts([]);
+    }
+  }, [selectedCategory]);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getCategories();
+      setCategories(response.data.results);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchProducts = async (categoryId) => {
+    try {
+      setIsFetchingProducts(true);
+      const response = await getProductsByCategory(categoryId);
+      setProducts(response.data.results);
+    } catch (error) {
+      // console.error('Error fetching products:', error);
+      setProducts([]);
+    } finally {
+      setIsFetchingProducts(false);
+    }
+  };
+
+  const handleCategoryPress = (categoryId) => {
+    if (selectedCategory === categoryId) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(categoryId);
+    }
+  };
+
+  const renderCategoryCard = ({ item }) => {
+    const isSelected = selectedCategory === item.id;
+    return (
+      <TouchableOpacity
+        style={[styles.categoryCard, isSelected && styles.selectedCategoryCard]}
+        onPress={() => handleCategoryPress(item.id)}
+      >
+        <Icon 
+          name={categoryIcons[item.name] || 'help-circle'} 
+          size={40} 
+          color={isSelected ? "#FFFFFF" : "#4CAF50"} 
+        />
+        <Text style={[styles.categoryName, isSelected && styles.selectedCategoryText]}>{item.name}</Text>
+        <Text style={[styles.categoryDescription, isSelected && styles.selectedCategoryText]} numberOfLines={2}>{item.description}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderProduct = ({ item }) => (
     <TouchableOpacity
@@ -64,9 +96,9 @@ const InventoryScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const filteredProducts = selectedCategory
-    ? mockProducts.filter(product => product.category_id === selectedCategory)
-    : [];
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(filterText.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,28 +111,45 @@ const InventoryScreen = ({ navigation }) => {
           <Icon name="plus" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-
+      <TextInput
+            style={styles.searchInput}
+            placeholder="Search products..."
+            value={filterText}
+            onChangeText={setFilterText}
+          />
+          
       <Text style={styles.sectionTitle}>Categories</Text>
-      <FlatList
-        data={categories}
-        renderItem={renderCategoryCard}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesList}
-      />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FlatList
+          data={categories}
+          renderItem={renderCategoryCard}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesList}
+          ListEmptyComponent={<Text>No categories found</Text>}
+        />
+      )}
 
       {selectedCategory && (
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>
             Products in {categories.find(cat => cat.id === selectedCategory)?.name}
           </Text>
-          <FlatList
-            data={filteredProducts}
-            renderItem={renderProduct}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.productsList}
-          />
+
+          {isFetchingProducts ? (
+            <Loader />
+          ) : (
+            <FlatList
+              data={filteredProducts}
+              renderItem={renderProduct}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.productsList}
+              ListEmptyComponent={<Text>No products found in this category</Text>}
+            />
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -155,6 +204,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  selectedCategoryCard: {
+    backgroundColor: '#4CAF50',
+  },
   categoryName: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -168,8 +220,18 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  selectedCategoryText: {
+    color: '#FFFFFF',
+  },
   productSection: {
     marginTop: 20,
+  },
+  searchInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
   },
   productsList: {
     paddingBottom: 20,
