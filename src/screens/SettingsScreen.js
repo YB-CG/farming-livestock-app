@@ -3,14 +3,13 @@ import { View, Text, Switch, StyleSheet, TouchableOpacity, ScrollView, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
+import { Linking } from 'react-native';
 
 const SettingsScreen = ({ navigation }) => {
-  const [isNotificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isLocationEnabled, setLocationEnabled] = useState(false);
   const [isDarkModeEnabled, setDarkModeEnabled] = useState(false);
   const { signOut } = useContext(AuthContext);
 
-  const toggleNotifications = () => setNotificationsEnabled(prevState => !prevState);
   const toggleLocation = () => setLocationEnabled(prevState => !prevState);
   const toggleDarkMode = () => setDarkModeEnabled(prevState => !prevState);
 
@@ -81,14 +80,14 @@ const SettingsScreen = ({ navigation }) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Help & Support</Text>
-          {renderSettingItem("help", "FAQ", () => navigation.navigate('FAQ'))}
-          {renderSettingItem("contact-support", "Contact Support", () => navigation.navigate('ContactSupport'))}
+          {renderSettingItem("help", "FAQ", () => Linking.openURL('https://www.google.com/search?q=FAQ'))}
+          {renderSettingItem("contact-support", "Contact Support", () => Linking.openURL('https://www.google.com/search?q=Contact+Support'))}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Legal</Text>
-          {renderSettingItem("privacy-tip", "Privacy Policy", () => navigation.navigate('PrivacyPolicy'))}
-          {renderSettingItem("gavel", "Terms and Conditions", () => navigation.navigate('TermsConditions'))}
+          {renderSettingItem("privacy-tip", "Privacy Policy", () => Linking.openURL('https://www.google.com/search?q=Privacy+Policy'))}
+          {renderSettingItem("gavel", "Terms and Conditions", () => Linking.openURL('https://www.google.com/search?q=Terms+and+Conditions'))}
         </View>
 
         <View style={styles.section}>
