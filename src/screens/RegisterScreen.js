@@ -16,6 +16,8 @@ const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [first_name, setFirstname] = useState('');
+  const [last_name, setLastname] = useState('');
   const [flashMessage, setFlashMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useContext(AuthContext);
@@ -46,7 +48,7 @@ const RegisterScreen = ({ navigation }) => {
       if (password !== confirmPassword) {
         throw new Error('Passwords do not match');
       }
-      const response = await register({ email, password });
+      const response = await register({ email, password, first_name, last_name });
       signUp(response.data.access);
       navigation.navigate('Login');
     } catch (error) {
@@ -81,6 +83,22 @@ const RegisterScreen = ({ navigation }) => {
                   <FlashMessage type={flashMessage.type} message={flashMessage.message} />
                 )}
                 <View style={styles.formContainer}>
+                <Input
+                    label="First name"
+                    value={first_name}
+                    onChangeText={setFirstname}
+                    placeholder="Enter your firstname"
+                    keyboardType="first_name"
+                    style={styles.input}
+                  />
+                  <Input
+                    label="Last name"
+                    value={last_name}
+                    onChangeText={setLastname}
+                    placeholder="Enter your lastname"
+                    keyboardType="last_name"
+                    style={styles.input}
+                  />
                   <Input
                     label="Email"
                     value={email}
