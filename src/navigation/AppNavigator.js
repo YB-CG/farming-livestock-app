@@ -14,6 +14,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LivestockListScreen from '../screens/LivestockListScreen';
 import LivestockProfileScreen from '../screens/LivestockProfileScreen';
 import AddLivestockScreen from '../screens/AddLivestockScreen';
+import UpdateLivestockScreen from '../screens/UpdateLivestockScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import TasksScreen from '../screens/TasksScreen';
 import AddTaskScreen from '../screens/AddTaskScreen';
@@ -64,6 +65,7 @@ const MainNavigator = () => {
       <MainStack.Screen name='Livestock' component={LivestockListScreen} />
       <MainStack.Screen name='LivestockProfile' component={LivestockProfileScreen} />
       <MainStack.Screen name='AddLivestock' component={AddLivestockScreen} />
+      <MainStack.Screen name='UpdateLivestock' component={UpdateLivestockScreen} />
       <MainStack.Screen name='Inventory' component={InventoryScreen} />
       <MainStack.Screen name='Tasks' component={TasksScreen} />
       <MainStack.Screen name='AddTask' component={AddTaskScreen} />
