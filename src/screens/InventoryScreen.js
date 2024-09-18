@@ -54,7 +54,7 @@ const InventoryScreen = ({ navigation }) => {
   const renderProduct = ({ item }) => (
     <TouchableOpacity
       style={styles.productItem}
-      onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
+      onPress={() => navigation.navigate('InventoryDetail', { productId: item.id })}
     >
       <Image source={{ uri: item.image }} style={styles.productImage} />
       <View style={styles.productInfo}>
@@ -74,7 +74,7 @@ const InventoryScreen = ({ navigation }) => {
         <Text style={styles.title}>Livestock Inventory</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate('AddProduct', { categories })}
+          onPress={() => navigation.navigate('AddInventory', { categories })}
         >
           <Icon name="plus" size={24} color="#FFFFFF" />
         </TouchableOpacity>
