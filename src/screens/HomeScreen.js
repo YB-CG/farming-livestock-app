@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserProfile, getWeather, getTasks, getCategories } from '../services/api';
+import { getUserProfile, getWeather, getTasks, getCategories, getLivestockList  } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { LineChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-chart-kit';
 import moment from 'moment';
 
 const HomeScreen = ({ navigation }) => {
@@ -13,6 +13,9 @@ const HomeScreen = ({ navigation }) => {
   const [tasks, setTasks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [currentTime, setCurrentTime] = useState(moment().format('LT'));
+  const [livestockData, setLivestockData] = useState([]);
+
+
   const { state } = useContext(AuthContext);
 
   useEffect(() => {
@@ -26,6 +29,7 @@ const HomeScreen = ({ navigation }) => {
     fetchWeather();
     fetchTasks();
     fetchCategories();
+    fetchLivestock();
 
     const interval = setInterval(() => {
       setCurrentTime(moment().format('LT'));
@@ -70,6 +74,18 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const fetchLivestock = async () => {
+    try {
+      const response = await getLivestockList();
+      const livestock = response.data.results;
+      const livestockByMonth = processLivestockData(livestock);
+      setLivestockData(livestockByMonth);
+    } catch (error) {
+      console.error('Failed to fetch livestock data', error);
+    }
+  };
+
+
 
   const renderWeatherIcon = () => {
     if (!weather) return null;
@@ -85,15 +101,82 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const chartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-      {
-        data: [20, 45, 28, 80, 99, 43],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+
+  const processLivestockData = (livestock) => {
+    const currentMonthIndex = moment().month(); // Current month index (0-based)
+    const monthAbbreviations = moment.monthsShort();
+    const pastSixMonths = monthAbbreviations.slice(currentMonthIndex - 5, currentMonthIndex + 1);
+  
+    const monthData = {};
+    pastSixMonths.forEach(month => {
+      monthData[month] = 0;
+    });
+  
+    livestock.forEach(animal => {
+      const createdDate = moment(animal.created_at);
+      const month = createdDate.format('MMM');
+      if (pastSixMonths.includes(month)) {
+        monthData[month]++;
       }
-    ]
+    });
+  
+    const labels = Object.keys(monthData);
+    const data = Object.values(monthData);
+  
+    return { labels, data };
   };
+  
+
+  const renderFarmPerformance = () => {
+    if (livestockData.labels && livestockData.data) {
+      const chartData = {
+        labels: livestockData.labels,
+        datasets: [
+          {
+            data: livestockData.data,
+          }
+        ]
+      };
+
+      const totalLivestock = livestockData.data.reduce((a, b) => a + b, 0);
+      const maxLivestock = Math.max(...livestockData.data);
+      const maxMonth = livestockData.labels[livestockData.data.indexOf(maxLivestock)];
+
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Farm Performance</Text>
+          <Text style={styles.chartSubtitle}>Livestock Added This Year</Text>
+          <BarChart
+            data={chartData}
+            width={300}
+            height={220}
+            yAxisLabel=""
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(81, 152, 114, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              barPercentage: 0.8,
+            }}
+            style={styles.chart}
+            showValuesOnTopOfBars={true}
+            fromZero={true}
+          />
+          <View style={styles.statsContainer}>
+            <Text style={styles.statText}>Total Livestock: {totalLivestock}</Text>
+            <Text style={styles.statText}>Best Month: {maxMonth} ({maxLivestock})</Text>
+          </View>
+        </View>
+      );
+    }
+    return null;
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -154,28 +237,7 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Farm Performance</Text>
-          <LineChart
-            data={chartData}
-            width={300}
-            height={200}
-            chartConfig={{
-              backgroundColor: "#ffffff",
-              backgroundGradientFrom: "#ffffff",
-              backgroundGradientTo: "#ffffff",
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16
-              }
-            }}
-            bezier
-            style={styles.chart}
-          />
-        </View>
+        {renderFarmPerformance()}
       </ScrollView>
 
       <View style={styles.bottomNav}>
@@ -201,6 +263,21 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+  statsContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  statText: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
