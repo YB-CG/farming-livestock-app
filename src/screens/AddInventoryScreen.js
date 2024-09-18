@@ -59,7 +59,7 @@ const AddInventoryScreen = ({ navigation, route }) => {
           onValueChange={(itemValue) => setCategory(itemValue)}
         >
           <Picker.Item label="Select a category" value="" />
-          {categories.map((cat) => (
+          {(categories || []).map((cat) => (
             <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
           ))}
         </Picker>

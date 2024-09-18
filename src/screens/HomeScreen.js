@@ -14,7 +14,32 @@ const HomeScreen = ({ navigation }) => {
   const [alerts, setAlerts] = useState([]);
   const [currentTime, setCurrentTime] = useState(moment().format('LT'));
   const { state } = useContext(AuthContext);
-
+  const categories = [
+    {
+      id: 1,
+      name: "Feed",
+      description: "Animal feed for various livestock, including grains and supplements.",
+      icon: "food-variant"
+    },
+    {
+      id: 2,
+      name: "Vaccines",
+      description: "Vaccines and other medical supplies for livestock health management.",
+      icon: "needle"
+    },
+    {
+      id: 3,
+      name: "Equipment",
+      description: "Farming tools and machinery used in livestock operations.",
+      icon: "tractor"
+    },
+    {
+      id: 4,
+      name: "Fencing Materials",
+      description: "Supplies for building and maintaining enclosures for livestock.",
+      icon: "fence"
+    }
+  ];
   useEffect(() => {
     if (state.isNewUser) {
       navigation.navigate('PersonalInfo');
@@ -130,9 +155,9 @@ const HomeScreen = ({ navigation }) => {
             <Icon name="healing" size={24} color="#F44336" />
             <Text style={styles.actionText}>Record Health</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('UpdateInventory')}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('AddInventory', { categories })}>
             <Icon name="edit" size={24} color="#2196F3" />
-            <Text style={styles.actionText}>Update Inventory</Text>
+            <Text style={styles.actionText}>Add Inventory</Text>
           </TouchableOpacity>
         </View>
 
