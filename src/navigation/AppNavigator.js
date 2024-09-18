@@ -17,6 +17,14 @@ import AddLivestockScreen from '../screens/AddLivestockScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import TasksScreen from '../screens/TasksScreen';
 import AddTaskScreen from '../screens/AddTaskScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import TaskDetailScreen from '../screens/TaskDetailScreen';
+import UpdateTaskScreen from '../screens/UpdateTaskScreen';
+import AddInventoryScreen from '../screens/AddInventoryScreen';
+import InventoryDetailScreen from '../screens/InventoryDetailScreen';
+import UpdateInventoryScreen from '../screens/UpdateInventoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -59,6 +67,17 @@ const MainNavigator = () => {
       <MainStack.Screen name='Inventory' component={InventoryScreen} />
       <MainStack.Screen name='Tasks' component={TasksScreen} />
       <MainStack.Screen name='AddTask' component={AddTaskScreen} />
+      <MainStack.Screen name='Profile' component={ProfileScreen} />
+      <MainStack.Screen name='EditProfile' component={EditProfileScreen} />
+      <MainStack.Screen name='ChangePassword' component={ChangePasswordScreen} />
+      <MainStack.Screen name='TaskDetail' component={TaskDetailScreen} />
+      <MainStack.Screen name='UpdateTask' component={UpdateTaskScreen} />
+      <MainStack.Screen name='AddInventory' component={AddInventoryScreen} />
+      <MainStack.Screen name='InventoryDetail' component={InventoryDetailScreen} />
+      <MainStack.Screen name='UpdateInventory' component={UpdateInventoryScreen} />
+
+
+      
       {/* <MainStack.Screen name="PersonalInfo" component={PersonalInfoScreen} /> */}
       {/* <MainStack.Screen name="FarmInfo" component={FarmInfoScreen} /> */}
     </MainStack.Navigator>
