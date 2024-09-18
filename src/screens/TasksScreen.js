@@ -43,7 +43,7 @@ const TasksScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={[styles.taskItem, isOverdue && styles.overdueTask]}
-        onPress={() => {/* Navigate to task details */}}
+        onPress={() => { navigation.navigate('TaskDetail', { task: item }) }}
       >
         <View style={styles.taskHeader}>
           <Icon name={getPriorityIcon(item.priority)} size={24} color={getStatusColor(item.status)} />
