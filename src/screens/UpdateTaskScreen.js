@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import { updateTask, deleteTask } from '../services/api'; 
+import Loader from '../components/Loader'; 
 
 const UpdateTaskScreen = ({ route, navigation }) => {
   const { task } = route.params;
@@ -14,12 +16,15 @@ const UpdateTaskScreen = ({ route, navigation }) => {
   const [status, setStatus] = useState(task.status);
   const [dueDate, setDueDate] = useState(new Date(task.due_date));
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const priorities = ['Low', 'Medium', 'High'];
   const statuses = ['Pending', 'In Progress', 'Completed'];
 
-  const handleUpdate = () => {
-    // Here you would typically call an API to update the task
+  const handleUpdate = async () => {
+    setLoading(true);
+    setError(null);
     const updatedTask = {
       ...task,
       title,
@@ -28,21 +33,33 @@ const UpdateTaskScreen = ({ route, navigation }) => {
       status,
       due_date: moment(dueDate).format('YYYY-MM-DD'),
     };
-    console.log('Updated task:', updatedTask);
-    // After updating, navigate back to the task details
-    navigation.goBack();
+    try {
+      await updateTask(task.id, updatedTask);
+      navigation.goBack();
+    } catch (err) {
+      setError('Failed to update the task.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     Alert.alert(
       "Delete Task",
       "Are you sure you want to delete this task?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => {
-          // Here you would typically call an API to delete the task
-          console.log('Deleting task:', task.id);
-          navigation.navigate('Tasks'); // Navigate back to the task list
+        { text: "Delete", onPress: async () => {
+          setLoading(true);
+          setError(null);
+          try {
+            await deleteTask(task.id);
+            navigation.navigate('Tasks');
+          } catch (err) {
+            setError('Failed to delete the task.');
+          } finally {
+            setLoading(false);
+          }
         }}
       ]
     );
@@ -64,6 +81,7 @@ const UpdateTaskScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {loading && <Loader />}
       <ScrollView>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -127,6 +145,8 @@ const UpdateTaskScreen = ({ route, navigation }) => {
             <Icon name="delete" size={24} color="#FFFFFF" />
             <Text style={styles.deleteButtonText}>Delete Task</Text>
           </TouchableOpacity>
+
+          {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -229,6 +249,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  errorText: {
+    color: '#F44336',
+    marginTop: 20,
+    fontWeight: 'bold',
   },
 });
 

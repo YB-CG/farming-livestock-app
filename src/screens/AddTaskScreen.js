@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import { createTask } from '../services/api'; 
+import Loader from '../components/Loader';
 
 const AddTaskScreen = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -12,12 +14,14 @@ const AddTaskScreen = ({ navigation }) => {
   const [status, setStatus] = useState('Pending');
   const [dueDate, setDueDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false); // State for loader visibility
 
   const priorities = ['Low', 'Medium', 'High'];
   const statuses = ['Pending', 'In Progress', 'Completed'];
 
-  const handleSave = () => {
-    // Here you would typically call an API to save the new task
+  const handleSave = async () => {
+    // Set loading to true when starting to save the task
+    setLoading(true);
     const newTask = {
       title,
       description,
@@ -25,9 +29,16 @@ const AddTaskScreen = ({ navigation }) => {
       status,
       due_date: moment(dueDate).format('YYYY-MM-DD'),
     };
-    console.log('New task:', newTask);
-    // After saving, navigate back to the tasks list
-    navigation.goBack();
+    try {
+      await createTask(newTask); // Call the API function to create the task
+      // After saving, navigate back to the tasks list
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to create task', error);
+    } finally {
+      // Hide loader after the task is created or if an error occurs
+      setLoading(false);
+    }
   };
 
   const renderPriorityButtons = () => (
@@ -120,6 +131,11 @@ const AddTaskScreen = ({ navigation }) => {
           )}
         </View>
       </ScrollView>
+      {loading && (
+        <View style={styles.loader}>
+          <Loader />
+        </View>
+      )}
     </SafeAreaView>
   );
 };

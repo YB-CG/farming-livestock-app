@@ -1,24 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
+import { getTasks } from '../services/api';
 
 const TasksScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(moment());
+  const [tasks, setTasks] = useState([]);
 
-  // Dummy data for tasks
-  const dummyTasks = [
-    { id: '1', title: 'Feed livestock', description: 'Distribute feed to all animals', priority: 'High', status: 'Pending', due_date: moment().format('YYYY-MM-DD') },
-    { id: '2', title: 'Check water supply', description: 'Ensure all water troughs are filled', priority: 'Medium', status: 'In Progress', due_date: moment().format('YYYY-MM-DD') },
-    { id: '3', title: 'Repair fencing', description: 'Fix damaged fencing in the north field', priority: 'Low', status: 'Pending', due_date: moment().add(1, 'days').format('YYYY-MM-DD') },
-    { id: '4', title: 'Order new seeds', description: 'Place order for next season\'s crops', priority: 'Medium', status: 'Completed', due_date: moment().subtract(1, 'days').format('YYYY-MM-DD') },
-    { id: '5', title: 'Maintenance on tractor', description: 'Perform routine maintenance on the main tractor', priority: 'High', status: 'Pending', due_date: moment().format('YYYY-MM-DD') },
-  ];
-
-  const filterTasksByDate = (date) => {
-    return dummyTasks.filter(task => moment(task.due_date).isSame(date, 'day'));
+  // Fetch tasks from API
+  const fetchTasks = async () => {
+    try {
+      const tasksData = await getTasks();
+      setTasks(tasksData.data.results);
+    } catch (error) {
+      console.error('Failed to fetch tasks', error);
+    }
   };
+
+  // Filter tasks by the selected date
+  const filterTasksByDate = (date) => {
+    return tasks.filter(task => moment(task.due_date).isSame(date, 'day'));
+  };
+
+  useEffect(() => {
+    fetchTasks(); // Fetch tasks when the component mounts
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -43,7 +51,7 @@ const TasksScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={[styles.taskItem, isOverdue && styles.overdueTask]}
-        onPress={() => { navigation.navigate('TaskDetail', { task: item }) }}
+        onPress={() => { navigation.navigate('TaskDetail', { taskId: item.id }) }} // Pass taskId instead of the whole task
       >
         <View style={styles.taskHeader}>
           <Icon name={getPriorityIcon(item.priority)} size={24} color={getStatusColor(item.status)} />
@@ -57,6 +65,7 @@ const TasksScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
+  
 
   const renderDateNavigation = () => (
     <View style={styles.dateNavigation}>
@@ -75,7 +84,7 @@ const TasksScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Tasks</Text>
         <TouchableOpacity onPress={() => navigation.navigate('AddTask')}>
-            <Icon name="add-circle-outline" size={30} color="#4CAF50" />
+          <Icon name="add-circle-outline" size={30} color="#4CAF50" />
         </TouchableOpacity>
       </View>
 

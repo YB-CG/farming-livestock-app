@@ -1,12 +1,41 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
+import { updateTask, getTask } from '../services/api';
+import Loader from '../components/Loader';
+
 
 const TaskDetailScreen = ({ route, navigation }) => {
-  // In a real app, you'd fetch the task details from your API or pass it through navigation
-  const { task } = route.params;
+  const { taskId } = route.params; // Get taskId from route params
+  const [task, setTask] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    const fetchTask = async () => {
+      setLoading(true);
+      try {
+        const response = await getTask(taskId);
+        setTask(response.data);
+      } catch (error) {
+        console.error('Failed to fetch task', error);
+        Alert.alert('Error', 'Failed to fetch task details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTask();
+  }, [taskId]);
+
+  if (loading) {
+    return <Loader />; // Show loader while fetching data
+  }
+
+  if (!task) {
+    return <Text>Task not found</Text>; // Handle case where task is not found
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -23,6 +52,20 @@ const TaskDetailScreen = ({ route, navigation }) => {
       case 'Medium': return 'warning';
       case 'Low': return 'info-outline';
       default: return 'help-outline';
+    }
+  };
+
+  const handleMarkAsComplete = async () => {
+    setLoading(true);
+    try {
+      await updateTask(task.id, { status: 'Completed' });
+      Alert.alert('Success', 'Task marked as completed');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to mark task as complete');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,13 +96,11 @@ const TaskDetailScreen = ({ route, navigation }) => {
 
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>{task.description}</Text>
-
-          {/* You can add more sections here, like comments, attachments, etc. */}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton} onPress={() => {/* Handle mark as complete */}}>
+        <TouchableOpacity style={styles.footerButton} onPress={handleMarkAsComplete}>
           <Icon name="check-circle" size={24} color="#FFFFFF" />
           <Text style={styles.footerButtonText}>Mark as Complete</Text>
         </TouchableOpacity>
@@ -67,6 +108,7 @@ const TaskDetailScreen = ({ route, navigation }) => {
     </SafeAreaView>
   );
 };
+
 
 const InfoItem = ({ icon, label, value, color }) => (
   <View style={styles.infoItem}>

@@ -232,16 +232,16 @@ export const deleteCalendarEvent = async (eventId) => {
 export const getTasks = () => api.get('/tasks/tasks/');
 
 // getTask function
-export const getTask = (taskId) => api.get(`/tasks/${taskId}/`);
+export const getTask = (taskId) => api.get(`/tasks/tasks/${taskId}/`);
 
 // createTask function
-export const createTask = (taskData) => api.post('/tasks/', taskData);
+export const createTask = (taskData) => api.post('/tasks/tasks/', taskData);
 
 // updateTask function
-export const updateTask = (taskId, taskData) => api.patch(`/tasks/${taskId}/`, taskData);
+export const updateTask = (taskId, taskData) => api.patch(`/tasks/tasks/${taskId}/`, taskData);
 
 // deleteTask function
-export const deleteTask = (taskId) => api.delete(`/tasks/${taskId}/`);
+export const deleteTask = (taskId) => api.delete(`/tasks/tasks/${taskId}/`);
 
 
 
