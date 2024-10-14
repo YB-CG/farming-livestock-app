@@ -29,6 +29,7 @@ import UpdateInventoryScreen from '../screens/UpdateInventoryScreen';
 import RecordHealthScreen from '../screens/RecordHealthScreen';
 import AddHealthRecord from '../screens/AddHealthRecord';
 import EventDetail from '../screens/EventDetail';
+import ReportGenerator from '../screens/ReportGenerator'; 
 
 const Stack = createStackNavigator();
 
@@ -83,6 +84,7 @@ const MainNavigator = () => {
       <MainStack.Screen name='RecordHealth' component={RecordHealthScreen} />
       <MainStack.Screen name='AddHealthRecord' component={AddHealthRecord} />
       <MainStack.Screen name='EventDetail' component={EventDetail} />
+      <MainStack.Screen name='ReportGenerator' component={ReportGenerator} />
 
 
 

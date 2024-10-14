@@ -30,12 +30,13 @@ const authReducer = (prevState, action) => {
         isNewUser: false,
       };
     case 'SIGN_UP':
-        return {
-          ...prevState,
-          isSignout: false,
-          userToken: action.token,
-          isNewUser: true,
-        };
+      return {
+        ...prevState,
+        isSignout: false,
+        userToken: action.token,
+        refreshToken: action.refreshToken,
+        isNewUser: true,
+      };
     case 'COMPLETE_ONBOARDING':
       return {
         ...prevState,
@@ -63,7 +64,7 @@ const AuthProvider = ({ children }) => {
         refreshToken = await AsyncStorage.getItem('refreshToken');
         isNewUser = await AsyncStorage.getItem('isNewUser') === 'true';
       } catch (e) {
-        // Restoring token failed
+        console.error('Error restoring token:', e);
       }
       dispatch({ type: 'RESTORE_TOKEN', token: userToken, refreshToken, isNewUser });
     };
@@ -74,41 +75,48 @@ const AuthProvider = ({ children }) => {
   const authContext = React.useMemo(
     () => ({
       signIn: async (token, refreshToken) => {
+        if (!token || !refreshToken) {
+          console.error('Invalid tokens provided for sign in');
+          return;
+        }
         try {
           await AsyncStorage.setItem('userToken', token);
           await AsyncStorage.setItem('refreshToken', refreshToken);
           await AsyncStorage.setItem('isNewUser', 'false');
+          dispatch({ type: 'SIGN_IN', token, refreshToken });
         } catch (e) {
-          // Saving token failed
+          console.error('Error saving tokens:', e);
         }
-        dispatch({ type: 'SIGN_IN', token: token, refreshToken });
       },
       signOut: async () => {
         try {
-          await AsyncStorage.removeItem('userToken');
-          await AsyncStorage.removeItem('refreshToken');
-          await AsyncStorage.removeItem('isNewUser');
+          await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'isNewUser']);
+          dispatch({ type: 'SIGN_OUT' });
         } catch (e) {
-          // Removing token failed
+          console.error('Error removing tokens:', e);
         }
-        dispatch({ type: 'SIGN_OUT' });
       },
-      signUp: async (token) => {
+      signUp: async (token, refreshToken) => {
+        if (!token || !refreshToken) {
+          console.error('Invalid tokens provided for sign up');
+          return;
+        }
         try {
           await AsyncStorage.setItem('userToken', token);
+          await AsyncStorage.setItem('refreshToken', refreshToken);
           await AsyncStorage.setItem('isNewUser', 'true');
+          dispatch({ type: 'SIGN_UP', token, refreshToken });
         } catch (e) {
-          // Saving token failed
+          console.error('Error saving tokens:', e);
         }
-        dispatch({ type: 'SIGN_UP', token: token });
       },
       completeOnboarding: async () => {
         try {
           await AsyncStorage.setItem('isNewUser', 'false');
+          dispatch({ type: 'COMPLETE_ONBOARDING' });
         } catch (e) {
-          // Saving state failed
+          console.error('Error saving onboarding state:', e);
         }
-        dispatch({ type: 'COMPLETE_ONBOARDING' });
       },
     }),
     []

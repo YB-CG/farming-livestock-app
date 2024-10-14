@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "33413352712",
+    "project_id": "greenfarm-d2b46",
+    "storage_bucket": "greenfarm-d2b46.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33413352712:android:086292423a2abacb38b0bd",
+        "android_client_info": {
+          "package_name": "com.younoussaben.GreenFarm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "33413352712-3n8gt88qhimrhjuja52pfq6lchmaer5r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjVzN0jizicYzC1Ml2svN6zrtXayNOLlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "33413352712-3n8gt88qhimrhjuja52pfq6lchmaer5r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "33413352712-6vucu88bkjqeum79caadrt2n63ffv16k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.younoussaben.GreenFarm"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -37,6 +37,10 @@ const LivestockProfileScreen = ({ route, navigation }) => {
           <Text style={styles.infoValue}>{livestock.animal_type}</Text>
         </View>
         <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Tag:</Text>
+          <Text style={styles.infoValue}>{livestock.id}</Text>
+        </View>
+        <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Breed:</Text>
           <Text style={styles.infoValue}>{livestock.breed}</Text>
         </View>
@@ -67,7 +71,7 @@ const LivestockProfileScreen = ({ route, navigation }) => {
         <View style={styles.healthStatus}>
           <Text style={styles.healthStatusText}>{livestock.status}</Text>
         </View>
-        <Text style={styles.sectionTitle}>Vaccination History</Text>
+        {/* <Text style={styles.sectionTitle}>Vaccination History</Text> */}
         {livestock.vaccinations && livestock.vaccinations.map((vaccination, index) => (
           <View key={index} style={styles.vaccinationItem}>
             <Icon name="check-circle" size={24} color="#4CAF50" />

@@ -63,8 +63,9 @@ const LoginScreen = ({ navigation }) => {
     setFlashMessage(null);
     try {
       const response = await login(email, password);
-      signIn(response.data.access); 
-      navigation.navigate('Home'); 
+      signIn(response.data.access, response.data.refresh); 
+      // navigation.navigate('Home');
+
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       setFlashMessage({
@@ -129,7 +130,7 @@ const LoginScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <View style={styles.socialContainer}>
                   <Text style={styles.orText}>Or</Text>
-                  <GoogleLogin />
+                  <GoogleLogin navigation={navigation} />
                 </View>
               </Animated.View>
             </ScrollView>

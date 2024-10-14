@@ -144,7 +144,16 @@ const HomeScreen = ({ navigation }) => {
 
       return (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Farm Performance</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Farm Performance</Text>
+            <TouchableOpacity
+              style={styles.exportButton}
+              onPress={() => navigation.navigate('ReportGenerator', { livestockData })}
+            >
+              <Icon name="file-download" size={24} color="#4CAF50" />
+              <Text style={styles.exportButtonText}>Export</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.chartSubtitle}>Livestock Added This Year</Text>
           <BarChart
             data={chartData}
@@ -177,7 +186,6 @@ const HomeScreen = ({ navigation }) => {
     return null;
   };
 
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -186,9 +194,15 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.farmName}>{userProfile?.first_name || ' '} {userProfile?.last_name}</Text>
           </View>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => navigation.navigate('Notifications')}
+          >
+            <Icon name="notifications" size={24} color="#333" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Image
-              source={{ uri: userProfile?.profile_picture  }}
+              source={{ uri: userProfile?.profile_picture }}
               style={styles.avatar}
             />
           </TouchableOpacity>
@@ -287,6 +301,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+  },
+  notificationButton: {
+    padding: 20,
+    right:10
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  exportButtonText: {
+    marginLeft: 5,
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   greeting: {
     fontSize: 16,

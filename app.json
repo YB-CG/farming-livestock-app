@@ -1,6 +1,6 @@
 {
   "expo": {
-    "scheme": "greenfarm",
+    "scheme": "com.greenfarm",
     "name": "GreenFarm",
     "slug": "GreenFarm",
     "version": "1.0.0",
@@ -13,16 +13,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.younoussaben.GreenFarm",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.younoussaben.GreenFarm",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b77aa844-35b5-461b-a50a-dc2ba1c336a9"
+      }
     }
   }
 }

@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://farming-livestock-core.onrender.com/api/';
 const WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
-const API_KEY = '39a730a3b67c279a2e49cdf6951d75a9'; // Your OpenWeatherMap API key
+const API_KEY = '39a730a3b67c279a2e49cdf6951d75a9';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -14,7 +14,6 @@ const api = axios.create({
   },
 });
 
-// Attach token logic (unchanged)
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('userToken');
@@ -28,7 +27,6 @@ api.interceptors.request.use(
   }
 );
 
-// Token refresh logic (unchanged)
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -47,26 +45,30 @@ api.interceptors.response.use(
 
           const newAccessToken = response.data.access;
           await AsyncStorage.setItem('userToken', newAccessToken);
+          api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
           return api(originalRequest);
         }
-      } catch (e) {
-        console.log('Error refreshing token:', e);
+      } catch (refreshError) {
+        console.log('Error refreshing token:', refreshError);
+        // If refresh token is invalid, sign out the user
+        await AsyncStorage.multiRemove(['userToken', 'refreshToken']);
+        // You might want to redirect to login screen here
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
   }
 );
 
-// Weather API function
 export const getWeather = async (lat, lon) => {
   try {
     const response = await axios.get(WEATHER_API_URL, {
       params: {
         q: 'Accra,gh',
         appid: API_KEY,
-        units: 'metric', // For Celsius
+        units: 'metric',
       },
     });
     return response.data;
@@ -119,7 +121,11 @@ export const updateUserProfile = async (userData) => {
 
 
 export const updateFarmInfo = (farmId, farmData) => api.patch(`/account/farm/${farmId}/`, farmData);
-export const getGoogleLoginUrl = () => api.get('/auth/google/login/');
+
+// Google Sign-in API
+export const googleSignIn = async (firebaseToken) => {
+  return await api.post('/auth/google/login/', { token: firebaseToken });
+};
 
 
 // Create livestock
