@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
 
@@ -15,8 +15,8 @@ const EventDetail = ({ route, navigation }) => {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
+  const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
   const [allDay, setAllDay] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,19 +45,22 @@ const EventDetail = ({ route, navigation }) => {
     }
   };
 
-  const onStartChange = (event, selectedDate) => {
-    const currentDate = selectedDate || startDate;
-    setShowStartPicker(false);
-    setStartDate(currentDate);
-    if (currentDate > endDate) {
-      setEndDate(currentDate);
+  const showStartPicker = () => setStartPickerVisibility(true);
+  const hideStartPicker = () => setStartPickerVisibility(false);
+  const showEndPicker = () => setEndPickerVisibility(true);
+  const hideEndPicker = () => setEndPickerVisibility(false);
+
+  const handleStartConfirm = (date) => {
+    setStartDate(date);
+    hideStartPicker();
+    if (date > endDate) {
+      setEndDate(date);
     }
   };
 
-  const onEndChange = (event, selectedDate) => {
-    const currentDate = selectedDate || endDate;
-    setShowEndPicker(false);
-    setEndDate(currentDate);
+  const handleEndConfirm = (date) => {
+    setEndDate(date);
+    hideEndPicker();
   };
 
   const handleUpdate = async () => {
@@ -153,14 +156,14 @@ const EventDetail = ({ route, navigation }) => {
           
           <View style={styles.dateTimeRow}>
             <Text style={styles.label}>Start:</Text>
-            <TouchableOpacity onPress={() => isEditing && setShowStartPicker(true)} style={styles.dateTimePicker}>
+            <TouchableOpacity onPress={() => isEditing && showStartPicker()} style={styles.dateTimePicker}>
               <Text>{moment(startDate).format('MMM D, YYYY HH:mm')}</Text>
             </TouchableOpacity>
           </View>
           
           <View style={styles.dateTimeRow}>
             <Text style={styles.label}>End:</Text>
-            <TouchableOpacity onPress={() => isEditing && setShowEndPicker(true)} style={styles.dateTimePicker}>
+            <TouchableOpacity onPress={() => isEditing && showEndPicker()} style={styles.dateTimePicker}>
               <Text>{moment(endDate).format('MMM D, YYYY HH:mm')}</Text>
             </TouchableOpacity>
           </View>
@@ -189,26 +192,26 @@ const EventDetail = ({ route, navigation }) => {
           )}
         </View>
 
-        {showStartPicker && (
-          <DateTimePicker
-            value={startDate}
-            mode="datetime"
-            is24Hour={true}
-            display="default"
-            onChange={onStartChange}
-          />
-        )}
-        {showEndPicker && (
-          <DateTimePicker
-            value={endDate}
-            mode="datetime"
-            is24Hour={true}
-            display="default"
-            onChange={onEndChange}
-          />
-        )}
+        <DateTimePickerModal
+          isVisible={isStartPickerVisible}
+          mode="datetime"
+          onConfirm={handleStartConfirm}
+          onCancel={hideStartPicker}
+          date={startDate}
+          isDarkModeEnabled={true}
+        />
+
+        <DateTimePickerModal
+          isVisible={isEndPickerVisible}
+          mode="datetime"
+          onConfirm={handleEndConfirm}
+          onCancel={hideEndPicker}
+          date={endDate}
+          minimumDate={startDate}
+          isDarkModeEnabled={true}
+        />
       </ScrollView>
-      {(isUpdating || isDeleting) && <Loader />}
+      {isLoading && <Loader />}
     </SafeAreaView>
   );
 };
